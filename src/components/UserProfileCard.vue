@@ -38,23 +38,25 @@
               >
                 Edit
               </router-link></template
-            > 
-            <button
-              v-if="userProfile.isFollowed"
-              @click.prevent.stop="cancelFollow"
-              type="submit"
-              class="btn btn-danger"
             >
-              取消追蹤
-            </button>
-            <button
-              v-else
-              type="submit"
-              @click.prevent.stop="addFollow"
-              class="btn btn-primary"
-            >
-              追蹤
-            </button>
+            <template v-else>
+              <button
+                v-if="userProfile.isFollowed"
+                @click.prevent.stop="cancelFollow"
+                type="submit"
+                class="btn btn-danger"
+              >
+                取消追蹤
+              </button>
+              <button
+                v-else
+                type="submit"
+                @click.prevent.stop="addFollow"
+                class="btn btn-primary"
+              >
+                追蹤
+              </button>
+            </template>
           </form>
           <p></p>
         </div>
