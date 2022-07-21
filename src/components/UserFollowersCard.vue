@@ -5,7 +5,7 @@
     </div>
     <div class="card-body">
       <router-link
-        :to="{ name: 'user-profile', params: { id: follower.id } }"
+        :to="{ name: 'user', params: { id: follower.id } }"
         v-for="follower in followers"
         :key="follower.id"
       >

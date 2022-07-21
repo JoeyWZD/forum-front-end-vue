@@ -13,7 +13,7 @@
           Delete
         </button>
         <h3>
-          <router-link :to="{name:'user-profile', params:{id: comment.User.id} }">
+          <router-link :to="{name:'user', params:{id: comment.User.id} }">
             {{ comment.User.name }}
           </router-link>
         </h3>

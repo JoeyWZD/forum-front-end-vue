@@ -11,7 +11,7 @@ const routes = [
   {
     path: '/',
     name: 'root',
-    redirect: '/restaurants'
+    redirect: '/signin'
   },
 
   {
@@ -49,7 +49,7 @@ const routes = [
 
   {
     path: '/users/:id',
-    name: 'user-profile',
+    name: 'user',
     component: () => import("../views/User.vue")
   },
 
