@@ -14,32 +14,54 @@
 </template>
 
 <script>
-import { v4 as uuidv4 } from "uuid"
+import commentsAPI from "./../apis/comments";
+import { Toast } from "./../utils/helpers";
 
 export default {
-  props:{
+  props: {
     restaurantId: {
       type: Number,
-      required: true
-    }
+      required: true,
+    },
   },
 
-  data () {
+  data() {
     return {
-      text: ''
-    }
+      text: "",
+    };
   },
   methods: {
-    handleSubmit () {
-      // TODO: 向 API 發送 POST 請求
-      // 伺服器新增 Comment 成功後...
-      this.$emit('after-create-comment', {
-        commentId: uuidv4(), // 尚未串接 API 暫時使用隨機的 id
-        restaurantId: this.restaurantId,
-        text: this.text
-      })
-      this.text = '' // 將表單內的資料清空
-    }
-  }
-}
+    async handleSubmit() {
+      try {
+        // 避免輸入空評論
+        if (!this.text.trim()) {
+          Toast.fire({
+            icon: "error",
+            title: "請輸入餐廳評論內容",
+          });
+          return;
+        }
+        this.isProcessing = true;
+        const { data } = await commentsAPI.createComments({
+          restaurantId: this.restaurantId,
+          text: this.text,
+        });
+
+        this.$emit("after-create-comment", {
+          commentId: data.commentId, // 尚未串接 API 暫時使用隨機的 id
+          restaurantId: this.restaurantId,
+          text: this.text,
+        });
+
+        this.isProcessing = false;
+        this.text = ""; // 將表單內的資料清空
+      } catch (error) {
+        Toast.fire({
+          icon: "error",
+          title: "無法新增餐廳評論，請稍後再試",
+        });
+      }
+    },
+  },
+};
 </script>

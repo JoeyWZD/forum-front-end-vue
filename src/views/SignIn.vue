@@ -66,7 +66,7 @@ export default {
     };
   },
   methods: {
-    async handleSubmit(e) {
+    async handleSubmit() {
       try {
         if (!this.email || !this.password) {
           Toast.fire({
@@ -75,7 +75,6 @@ export default {
           });
           return;
         }
-        console.log(e)
         this.isProcessing = true;
 
         // 使用 authorizationAPI 的 signIn 方法
@@ -95,6 +94,9 @@ export default {
 
         // 將 token 存放在 localStorage 內
         localStorage.setItem("token", data.token);
+
+        // 將資料傳入vuex 中
+        this.$store.commit('setCurrentUser' , data.user)
 
         // 成功登入後轉址到餐聽首頁
         this.$router.push("/restaurants");

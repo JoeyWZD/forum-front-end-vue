@@ -21,103 +21,9 @@
 import RestaurantDetail from "./../components/RestaurantDetail.vue";
 import RestaurantComments from "./../components/RestaurantComments.vue";
 import CreateComment from "./../components/CreateComment.vue";
-
-const dummyData = {
-  restaurant: {
-    id: 1,
-    name: "Franco Boyer",
-    tel: "(765) 610-2179 x21150",
-    address: "65008 Eusebio Summit",
-    opening_hours: "08:00",
-    description: "sapiente ex nihil",
-    image:
-      "https://loremflickr.com/320/240/restaurant,food/?random=65.02882729727115",
-    viewCounts: 1,
-    createdAt: "2022-07-02T19:36:40.000Z",
-    updatedAt: "2022-07-05T20:47:25.275Z",
-    CategoryId: 4,
-    Category: {
-      id: 4,
-      name: "墨西哥料理",
-      createdAt: "2022-07-02T19:36:40.000Z",
-      updatedAt: "2022-07-02T19:36:40.000Z",
-    },
-    FavoritedUsers: [],
-    LikedUsers: [],
-    Comments: [
-      {
-        id: 1,
-        text: "Voluptates enim nisi ad enim perspiciatis possimus.",
-        UserId: 1,
-        RestaurantId: 1,
-        createdAt: "2022-07-02T19:36:40.000Z",
-        updatedAt: "2022-07-02T19:36:40.000Z",
-        User: {
-          id: 1,
-          name: "root",
-          email: "root@example.com",
-          password:
-            "$2a$10$75ECfZeCAP6jjrtfRQY6M.JmmqFFkOSlFoN41j7w1VjmYcWNlh7PW",
-          isAdmin: true,
-          image: null,
-          createdAt: "2022-07-02T19:36:40.000Z",
-          updatedAt: "2022-07-02T19:36:40.000Z",
-        },
-      },
-      {
-        id: 51,
-        text: "Porro et illo vel voluptas et soluta voluptate blanditiis.",
-        UserId: 1,
-        RestaurantId: 1,
-        createdAt: "2022-07-02T19:36:40.000Z",
-        updatedAt: "2022-07-02T19:36:40.000Z",
-        User: {
-          id: 1,
-          name: "root",
-          email: "root@example.com",
-          password:
-            "$2a$10$75ECfZeCAP6jjrtfRQY6M.JmmqFFkOSlFoN41j7w1VjmYcWNlh7PW",
-          isAdmin: true,
-          image: null,
-          createdAt: "2022-07-02T19:36:40.000Z",
-          updatedAt: "2022-07-02T19:36:40.000Z",
-        },
-      },
-      {
-        id: 101,
-        text: "Quos consectetur optio hic labore.",
-        UserId: 1,
-        RestaurantId: 1,
-        createdAt: "2022-07-02T19:36:40.000Z",
-        updatedAt: "2022-07-02T19:36:40.000Z",
-        User: {
-          id: 1,
-          name: "root",
-          email: "root@example.com",
-          password:
-            "$2a$10$75ECfZeCAP6jjrtfRQY6M.JmmqFFkOSlFoN41j7w1VjmYcWNlh7PW",
-          isAdmin: true,
-          image: null,
-          createdAt: "2022-07-02T19:36:40.000Z",
-          updatedAt: "2022-07-02T19:36:40.000Z",
-        },
-      },
-    ],
-  },
-  isFavorited: false,
-  isLiked: false,
-};
-
-const dummyUser = {
-  currentUser: {
-    id: 1,
-    name: "管理者",
-    email: "root@example.com",
-    image: "https://i.pravatar.cc/300",
-    isAdmin: true,
-  },
-  isAuthenticated: true,
-};
+import restaurantsAPI from "./../apis/restaurants";
+import { Toast } from "./../utils/helpers";
+import { mapState } from "vuex";
 
 export default {
   components: {
@@ -140,7 +46,7 @@ export default {
         isFavorited: false,
         isLiked: false,
       },
-      currentUser: dummyUser.currentUser,
+      // currentUser: dummyUser.currentUser,
       restaurantComments: [],
     };
   },
@@ -149,24 +55,48 @@ export default {
     this.fetchRestaurant(restaurantId);
   },
   methods: {
-    fetchRestaurant(restaurantId) {
-      console.log("fetchRestaurant id: ", restaurantId);
+    async fetchRestaurant(restaurantId) {
+      try {
+        // STEP 4: 透過 restaurantsAPI 取得餐廳資訊
+        const { data } = await restaurantsAPI.getRestaurant({ restaurantId });
 
-      this.restaurant = {
-        id: dummyData.restaurant.id,
-        name: dummyData.restaurant.name,
-        categoryName: dummyData.restaurant.Category.name,
-        image: dummyData.restaurant.image,
-        openingHours: dummyData.restaurant.opening_hours,
-        tel: dummyData.restaurant.tel,
-        address: dummyData.restaurant.address,
-        description: dummyData.restaurant.description,
-        isFavorited: dummyData.isFavorited,
-        isLiked: dummyData.isLiked,
-      };
+        // STEP 5: 透過 restaurantsAPI 取得餐廳資訊
+        const { restaurant, isFavorited, isLiked } = data;
+        const {
+          id,
+          name,
+          Category,
+          image,
+          opening_hours: openingHours,
+          tel,
+          address,
+          description,
+          Comments,
+        } = restaurant;
 
-      this.restaurantComments = dummyData.restaurant.Comments;
+        this.restaurant = {
+          id,
+          name,
+          categoryName: Category ? Category.name : "未分類",
+          image,
+          openingHours,
+          tel,
+          address,
+          description,
+          isFavorited,
+          isLiked,
+        };
+
+        this.restaurantComments = Comments;
+      } catch (error) {
+        // STEP 6: 透過 restaurantsAPI 取得餐廳資訊
+        Toast.fire({
+          icon: "error",
+          title: "無法取得餐廳資料，請稍後再試",
+        });
+      }
     },
+
     afterDeleteComment(commentId) {
       // 以 filter 保留未被選擇的 comment.id
       this.restaurantComments = this.restaurantComments.filter(
@@ -187,6 +117,14 @@ export default {
         createdAt: new Date(),
       });
     },
+  },
+  computed: {
+    ...mapState(["currentUser"]),
+  },
+  beforeRouteUpdate(to, from, next) {
+    const { id: restaurantId } = to.params;
+    this.fetchRestaurant(restaurantId);
+    next();
   },
 };
 </script>

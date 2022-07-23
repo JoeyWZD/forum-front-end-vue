@@ -36,52 +36,11 @@
 </template>
 
 <script>
-const dummyData = {
-  users: [
-    {
-      id: 1,
-      name: "root",
-      email: "root@example.com",
-      password: "$2a$10$NaFxxKY/enRJ7qMRQafrK.4pWvCRLWHZft5m2Z3znhKV/amCvJPwm",
-      isAdmin: true,
-      image: null,
-      createdAt: "2022-04-24T01:28:16.000Z",
-      updatedAt: "2022-04-24T01:28:16.000Z",
-    },
-    {
-      id: 2,
-      name: "user1",
-      email: "user1@example.com",
-      password: "$2a$10$wW0J2C.uUY80yJ3oX0i11.vrMEMhqZ3ufqabZXfjzwvbwyGfeVlS2",
-      isAdmin: false,
-      image: null,
-      createdAt: "2022-04-24T01:28:16.000Z",
-      updatedAt: "2022-04-24T01:28:16.000Z",
-    },
-    {
-      id: 3,
-      name: "user2",
-      email: "user2@example.com",
-      password: "$2a$10$DGliZ2sx9n0NMLxjkBtH0eASt0XW2uyaTWkTbGyXvHW/jahQE.0Cq",
-      isAdmin: false,
-      image: null,
-      createdAt: "2022-04-24T01:28:16.000Z",
-      updatedAt: "2022-04-24T01:28:16.000Z",
-    },
-  ],
-};
-
-const dummyUser = {
-  currentUser: {
-    id: 1,
-    name: "管理者",
-    email: "root@example.com",
-    image: "https://i.pravatar.cc/300",
-    isAdmin: true,
-  },
-  isAuthenticated: true,
-};
+import adminAPI from "./../apis/admin";
+import { Toast } from "./../utils/helpers";
+import { mapState } from "vuex";
 import AdminNav from "./../components/AdminNav.vue";
+
 export default {
   components: {
     AdminNav,
@@ -89,31 +48,54 @@ export default {
   data() {
     return {
       users: [],
-      currentUser: {},
     };
   },
   created() {
     this.fetchUser();
   },
+
+  computed: {
+    ...mapState(["currentUser"]),
+  },
+
   methods: {
-    fetchUser() {
-      this.currentUser = dummyUser.currentUser;
-      this.users = dummyData.users;
+    async fetchUser() {
+      try {
+        const { data } = await adminAPI.getAdminUsers();
+        this.userInfo = data.users;
+      } catch (error) {
+        console.log(error);
+        Toast.fire({
+          icon: "error",
+          title: "請求使用者失敗",
+        });
+      }
     },
-    // toggleUserRole(userId) {
-    //   this.users = this.users.map( user => {
-    //     if (user.id === userId) {
-    //       return {
-    //         ...user,
-    //         isAdmin: !user.isAdmin,
-    //       }
-    //     }
-    //     return user
-    //   })
-    // }
-    toggleUserRole(userId) {
-      const user = this.users.find((user) => user.id === userId);
-      user.isAdmin = !user.isAdmin;
+
+    async toggleUserRole({ userId, isAdmin }) {
+      try {
+        const { data } = await adminAPI.users.toggleIsAdmin({
+          userId,
+          isAdmin: (!isAdmin).toString(),
+        });
+        if (data.status !== "success") {
+          throw new Error(data.message);
+        }
+        this.users = this.users.map((user) => {
+          if (user.id === userId) {
+            return {
+              ...user,
+              isAdmin: !isAdmin,
+            };
+          }
+          return user;
+        });
+      } catch (error) {
+        Toast.fire({
+          icon: "error",
+          title: "無法切換權限，請稍後再試",
+        });
+      }
     },
   },
 };

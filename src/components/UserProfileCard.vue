@@ -41,8 +41,8 @@
             >
             <template v-else>
               <button
-                v-if="userProfile.isFollowed"
-                @click.prevent.stop="cancelFollow"
+                v-if="isFollowed"
+                @click.prevent.stop="cancelFollow(user.id)"
                 type="submit"
                 class="btn btn-danger"
               >
@@ -51,7 +51,7 @@
               <button
                 v-else
                 type="submit"
-                @click.prevent.stop="addFollow"
+                @click.prevent.stop="addFollow(user.id)"
                 class="btn btn-primary"
               >
                 追蹤
@@ -65,6 +65,9 @@
   </div>
 </template>
 <script>
+import usersAPI from "./../apis/users.js";
+import { Toast } from "./../utils/helpers";
+
 export default {
   props: {
     user: {
@@ -75,24 +78,54 @@ export default {
       type: Boolean,
       required: true,
     },
+    initialIsFollowed: {
+      required: true,
+      type: Boolean,
+    },
   },
   data() {
     return {
       userProfile: this.user,
+      isFollowed: this.initialIsFollowed,
     };
   },
-  methods: {
-    addFollow() {
-      this.userProfile = {
-        ...this.userProfile,
-        isFollowed: true,
-      };
+
+  watch: {
+    // 父元件非同步渲染，會最後才將資料傳遞子元件
+    initialIsFollowed(newVal) {
+      this.isFollowed = newVal;
     },
-    cancelFollow() {
-      this.userProfile = {
-        ...this.userProfile,
-        isFollowed: false,
-      };
+  },
+  methods: {
+    async addFollow(userId) {
+      try {
+        const { data } = await usersAPI.addFollowing({ userId });
+        if (data.status !== "success") {
+          throw new Error(data.message);
+        }
+
+        this.isFollowed = true;
+      } catch (error) {
+        Toast.fire({
+          icon: "error",
+          title: "無法追蹤，請稍後再試",
+        });
+      }
+    },
+    async cancelFollow(userId) {
+      try {
+        const { data } = await usersAPI.deleteFollowing({ userId });
+        if (data.status !== "success") {
+          throw new Error(data.message);
+        }
+
+        this.isFollowed = false;
+      } catch (error) {
+        Toast.fire({
+          icon: "error",
+          title: "無法取消追蹤，請稍後再試",
+        });
+      }
     },
   },
 };

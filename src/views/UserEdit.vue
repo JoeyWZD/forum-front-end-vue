@@ -39,17 +39,10 @@
 </template>
 
 <script>
-// 模擬登入使用者
-const dummyUser = {
-  currentUser: {
-    id: 1,
-    name: "管理者",
-    email: "root@example.com",
-    image: "https://i.pravatar.cc/300",
-    isAdmin: true,
-  },
-  isAuthenticated: true,
-};
+import { mapState } from "vuex";
+import userAPI from "./../apis/users";
+import { Toast } from "./../utils/helpers";
+
 export default {
   data() {
     return {
@@ -63,18 +56,29 @@ export default {
     };
   },
   created() {
-    this.fetchUser();
+    const { id } = this.$route.params;
+    if (id !== this.currentUser.id) {
+      this.$router.push({ name: "not-found" });
+      return;
+    }
+    this.setUser();
   },
+
+  computed: {
+    ...mapState(["currentUser"]),
+  },
+
+  watch: {
+    currentUser() {
+      this.setUser();
+    },
+  },
+
   methods: {
-    fetchUser() {
-      const { currentUser } = dummyUser;
-      const { id, name, email, image, isAdmin } = currentUser;
+    setUser() {
       this.user = {
-        id,
-        name,
-        email,
-        image,
-        isAdmin,
+        ...this.user,
+        ...this.currentUser,
       };
     },
     handleFileChange(e) {
@@ -86,11 +90,40 @@ export default {
         this.user.image = imgURL;
       }
     },
-    handleFormData(e) {
+
+    async handleFormData(e) {
+      if (!this.user.name.trim()) {
+        Toast.fire({
+          icon: "warning",
+          title: "請填寫姓名",
+        });
+        return;
+      }
       const form = e.target;
       const formData = new FormData(form);
-      for (let [name, value] of formData) {
-        console.log(name + ":" + value);
+      try {
+        
+        this.isProcessing = true;
+        const { data } = await userAPI.update({
+          userId: this.user.id,
+          formData,
+        });
+        // this.$store.commit("setCurrentUser", this.user);
+        if (data.status !== "success") {
+          throw new Error(data.message);
+        }
+        // 轉址
+        this.$router.push({
+          name: "user-profile",
+          params: { id: this.user.id },
+        });
+      } catch (error) {
+        this.isProcessing = false;
+        console.log(error);
+        Toast.fire({
+          icon: "error",
+          title: "更新失敗",
+        });
       }
     },
   },
