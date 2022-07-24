@@ -61,8 +61,8 @@ export default {
   methods: {
     async fetchUser() {
       try {
-        const { data } = await adminAPI.getAdminUsers();
-        this.userInfo = data.users;
+        const { data } = await adminAPI.users.get();
+        this.users = data.users;
       } catch (error) {
         console.log(error);
         Toast.fire({

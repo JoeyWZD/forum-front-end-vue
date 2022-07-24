@@ -36,6 +36,7 @@
           <button
             type="button"
             class="btn btn-sm btn-outline-success my-2 my-sm-0"
+            @click="logout"
           >
             登出
           </button>
@@ -46,18 +47,39 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-  // Step1：移除 dummyUser
+import { mapState } from "vuex";
+// Step1：移除 dummyUser
 
 export default {
   // Step2：移除 data 屬性
   // Step3：移除 created 和 fetchUser 的方法
-  
+
   // Step4：新增 `mapState` 方法
   computed: {
-    ...mapState(['currentUser', 'isAuthenticated'])
+    ...mapState(["currentUser", "isAuthenticated"]),
   },
+  methods: {
+    logout() {
+      this.$store.commit("revokeAuthentication");
+      this.$router.push("/signin");
+    },
+  },
+};
+</script>
+
+<style scoped>
+.navbar-toggler {
+  min-width: 70px;
+  margin-right: 0;
 }
 
+nav.bg-dark {
+  padding: 14px 16px;
+  background-color: #bd2333 !important;
+}
 
-</script>
+.navbar-brand {
+  font-size: 19px;
+  padding: 0;
+}
+</style>
